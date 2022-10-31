@@ -6,7 +6,6 @@ from datetime import datetime, timedelta
 from functools import cache
 from threading import Thread
 from time import sleep
-import os
 import getopt
 import sys
  
