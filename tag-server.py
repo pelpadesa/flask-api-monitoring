@@ -12,7 +12,7 @@ import sys
 load_dotenv()
 api = Flask(__name__)
 
-api.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///data.db'
+api.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////mnt/data/tag-data.db'
 api.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy()
