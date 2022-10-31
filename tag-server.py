@@ -2,8 +2,10 @@ from flask import Flask, request, make_response, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from waitress import serve
 from dotenv import load_dotenv
-from datetime import datetime
+from datetime import datetime, timedelta
 from functools import cache
+from threading import Thread
+from time import sleep
 import os
 import getopt
 import sys
@@ -29,21 +31,33 @@ class DataModel(db.Model):
 class Change(db.Model):
     id = db.Column(db.Integer, primary_key=True, autoincrement=True)
     tag = db.Column(db.String)
-    description = db.Column(db.String)
     date = db.Column(db.String)
+
+def ExpireEntries():
+    with api.app_context():
+        while True:
+            changes = Change.query.all()
+            currentDate = datetime.utcnow()
+            for change in changes:
+                expiryDate = datetime.strptime(change.date.split(" ")[0], "%Y-%m-%d")
+                expiryDate = expiryDate + timedelta(days=30)
+                if currentDate > expiryDate:
+                    db.session.delete(change)
+            db.session.commit()
+            sleep(43200)
 
 @api.before_first_request
 def create_all():
     db.create_all()
+    expiryThread = Thread(target=ExpireEntries,args=()).start()
     
 @api.route('/update', methods=["GET"])
 def update_tag():
     tag = request.args.get("tag")
-    description = request.headers.get("description")
     if tag is not None:
         tag_model = DataModel.query.filter_by(tag = tag).first()
         if tag_model is not None:
-            change_model = Change(tag=tag, description=description, date=datetime.utcnow())
+            change_model = Change(tag=tag, date=datetime.utcnow())
             use_count = tag_model.update()
 
             db.session.add(change_model)
@@ -69,6 +83,9 @@ def get_tag():
 def create_tag():
     tag = request.args.get("tag")
     if tag is not None:
+        if DataModel.query.filter_by(tag=tag).first():
+            return make_response("Tag already exists!", 409)
+        
         tag_model = DataModel(tag=tag, use_count=0)
         db.session.add(tag_model)
         db.session.commit()
@@ -85,7 +102,7 @@ def tag_history():
 
         change_data = {}
         for change in changes:
-            change_data[change.id] = {"description": change.description, "date": change.date}
+            change_data[change.id] = {"date": change.date}
         return jsonify(change_data)
     return make_response("Invalid Data!", 404)
 
