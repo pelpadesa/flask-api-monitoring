@@ -5,6 +5,9 @@ from dotenv import load_dotenv
 from datetime import datetime
 from functools import cache
 import os
+import getopt
+import sys
+ 
 
 load_dotenv()
 api = Flask(__name__)
@@ -87,4 +90,12 @@ def tag_history():
     return make_response("Invalid Data!", 404)
 
 if __name__ == "__main__":
-    serve(app=api, host=os.getenv('HOST'), port=os.getenv('PORT'))
+    try:
+        portValue = 80 # Default Value
+        argumentList = sys.argv[1:]
+        if len(argumentList) > 0:
+            portValue = int(sys.argv[1:][0])
+    except getopt.error as err:
+        print(str(err))
+    print(f"Serving on http://0.0.0.0:{portValue}")
+    serve(app=api, host="0.0.0.0", port=portValue)
