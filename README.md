@@ -1,4 +1,4 @@
-# api-monitoring
+# flask-api-monitoring
 Flask application for monitoring a service's usage using "Tags". 
 The idea is to schedule a ping to this application's endpoints internally whenever a part of the service is used.
 
@@ -12,7 +12,7 @@ Then, the usage statistics for `tag=page1` will update, and total usage stats/a 
 
 # Installation
 
-First, clone this repository and edit `docker-compose.yml` to fit your needs. With Docker installed, you'll just need to run `docker compose up` in the directory with api-monitoring's files.
+First, clone this repository and edit `docker-compose.yml` to fit your needs. With Docker installed, you'll just need to run `docker compose up` in the directory with flask-api-monitoring's files.
 
 
 ## /create Endpoint
