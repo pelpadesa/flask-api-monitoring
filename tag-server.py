@@ -65,7 +65,7 @@ def update_tag():
             return make_response(f'{use_count}', 200)
         else:
             return make_response(f"Tag does not exist!", 404)
-    return make_response("Invalid Data", 400)
+    return make_response("Invalid Data", 412)
 
 @api.route('/get', methods=["GET"])
 def get_tag():
@@ -76,7 +76,7 @@ def get_tag():
             return make_response(f"{tag_model.use_count}", 200)
         else:
             return make_response(f"Tag does not exist!", 404)
-    return make_response("Invalid Data", 400)
+    return make_response("Invalid Data", 412)
 
 @api.route('/create', methods=["GET"])
 def create_tag():
@@ -90,20 +90,20 @@ def create_tag():
         db.session.commit()
 
         return make_response("Tag Created Successfully", 200)
-    return make_response("Invalid Data", 400)
+    return make_response("Invalid Data", 412)
 
 @api.route('/history', methods=["GET"])
 def tag_history():
     tag = request.args.get("tag")
     if tag is not None:
         changes = Change.query.filter_by(tag=tag).all()
-        if changes is None: return make_response("Invalid Data!", 403)
-
+        if changes is None: 
+            return make_response("No Data Found!", 404)
         change_data = {}
         for change in changes:
             change_data[change.id] = {"date": change.date}
         return jsonify(change_data)
-    return make_response("Invalid Data!", 404)
+    return make_response("Invalid Data!", 412)
 
 if __name__ == "__main__":
     try:
