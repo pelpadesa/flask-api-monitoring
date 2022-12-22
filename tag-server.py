@@ -1,7 +1,6 @@
 from flask import Flask, request, make_response, jsonify
 from flask_sqlalchemy import SQLAlchemy
 from waitress import serve
-from dotenv import load_dotenv
 from datetime import datetime, timedelta
 from functools import cache
 from threading import Thread
