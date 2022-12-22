@@ -53,18 +53,18 @@ def create_all():
 @api.route('/update', methods=["GET"])
 def update_tag():
     tag = request.args.get("tag")
-    if tag is not None:
-        tag_model = DataModel.query.filter_by(tag = tag).first()
-        if tag_model is not None:
-            change_model = Change(tag=tag, date=datetime.utcnow())
-            use_count = tag_model.update()
+    if tag is None: 
+        return make_response(f"Tag does not exist!", 404)
+    tag_model = DataModel.query.filter_by(tag = tag).first()
+    if tag_model is not None:
+        change_model = Change(tag=tag, date=datetime.utcnow())
+        use_count = tag_model.update()
 
-            db.session.add(change_model)
-            db.session.commit()
+        db.session.add(change_model)
+        db.session.commit()
 
-            return make_response(f'{use_count}', 200)
-        else:
-            return make_response(f"Tag does not exist!", 404)
+        return make_response(f'{use_count}', 200)
+       
     return make_response("Invalid Data", 412)
 
 @api.route('/get', methods=["GET"])
