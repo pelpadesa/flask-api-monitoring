@@ -9,8 +9,6 @@ from time import sleep
 import getopt
 import sys
  
-
-load_dotenv()
 api = Flask(__name__)
 
 api.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////mnt/data/tag-data.db'
@@ -56,54 +54,56 @@ def update_tag():
     if tag is None: 
         return make_response(f"Tag does not exist!", 404)
     tag_model = DataModel.query.filter_by(tag = tag).first()
-    if tag_model is not None:
-        change_model = Change(tag=tag, date=datetime.utcnow())
-        use_count = tag_model.update()
+    if tag_model is None:
+        return make_response("Invalid Data", 412)
+        
+    change_model = Change(tag=tag, date=datetime.utcnow())
+    use_count = tag_model.update()
 
-        db.session.add(change_model)
-        db.session.commit()
+    db.session.add(change_model)
+    db.session.commit()
 
-        return make_response(f'{use_count}', 200)
-       
-    return make_response("Invalid Data", 412)
+    return make_response(f'{use_count}', 200)
 
 @api.route('/get', methods=["GET"])
 def get_tag():
     tag = request.args.get("tag")
-    if tag is not None:
-        tag_model = DataModel.query.filter_by(tag = tag).first()
-        if tag_model is not None:
-            return make_response(f"{tag_model.use_count}", 200)
-        else:
-            return make_response(f"Tag does not exist!", 404)
-    return make_response("Invalid Data", 412)
+    if tag is None:
+        return make_response("Invalid Data", 412)
+    tag_model = DataModel.query.filter_by(tag = tag).first()
+    if tag_model is None:
+        return make_response(f"Tag does not exist!", 404)
+
+    return make_response(f"{tag_model.use_count}", 200)
 
 @api.route('/create', methods=["GET"])
 def create_tag():
     tag = request.args.get("tag")
-    if tag is not None:
-        if DataModel.query.filter_by(tag=tag).first():
-            return make_response("Tag already exists!", 409)
+    if tag is None:
+        return make_response("Invalid Data", 412)
+    tag_model = DataModel.query.filter_by(tag = tag).first()
+    if tag_model is not None:
+        return make_response("Tag already exists!", 409)
         
-        tag_model = DataModel(tag=tag, use_count=0)
-        db.session.add(tag_model)
-        db.session.commit()
+    tag_model = DataModel(tag=tag, use_count=0)
+    db.session.add(tag_model)
+    db.session.commit()
 
-        return make_response("Tag Created Successfully", 200)
-    return make_response("Invalid Data", 412)
+    return make_response("Tag Created Successfully", 200)
 
 @api.route('/history', methods=["GET"])
 def tag_history():
     tag = request.args.get("tag")
-    if tag is not None:
-        changes = Change.query.filter_by(tag=tag).all()
-        if changes is None: 
-            return make_response("No Data Found!", 404)
-        change_data = {}
-        for change in changes:
-            change_data[change.id] = {"date": change.date}
-        return jsonify(change_data)
-    return make_response("Invalid Data!", 412)
+    if tag is None:
+        return make_response("Invalid Data!", 412)
+    changes = Change.query.filter_by(tag=tag).all()
+    if changes is None: 
+        return make_response("No Data Found!", 404)
+
+    change_data = {}
+    for change in changes:
+        change_data[change.id] = {"date": change.date}
+    return jsonify(change_data)
 
 if __name__ == "__main__":
     try:
